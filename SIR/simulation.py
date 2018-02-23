@@ -243,6 +243,10 @@ class City:
         plt.title(self.name())
         plt.show()
 
+    def plot_get_infected(self):
+        _yi, = plt.plot(self.Y_infected, label="i(t) - "+str(self.name()))
+        return _yi
+
 def example_graph():
     """
     Example graph that is the same as the one found at the link:
@@ -256,16 +260,24 @@ def example_graph():
     c.plot()
 
 def example_cities():
-    b = 1/2
-    k = 1/3
-    cities = []
-    for i in range(4):
-        name = "City " + str(i)
-        pos = (0,0)
-        N = 7900000
-        susceptible = N
-        infected = 0
-        recovered = 0
-        c = City(name=name, position=pos, N=N, b=b, k=k, susceptible=susceptible, infected=infected, recovered=recovered)
+    b = 0.99
+    k = 1/10
+    cities = [
+        City(name="Stockholm", position=(0,0),      N=1400000, b=b, k=k, susceptible=1400000, infected=1, recovered=0),
+        City(name="Göteborg",  position=(-50, -50), N=1000000, b=b, k=k, susceptible=1000000, infected=0,  recovered=0),
+        City(name="Umeå",      position=(-4, 100),  N=100000,  b=b, k=k, susceptible=100000,  infected=0,  recovered=0),
+        City(name="Örebro",    position=(-10, 5),   N=350000,  b=b, k=k, susceptible=350000,  infected=0,  recovered=0)
+    ]
+
+    print(cities)
+    for c in cities:
+        print(cities[:].remove(c))
+
+    for t in range(140):
+        for c in cities:
+            c.step(t)
+
+    plt.legend(handles=[c.plot_get_infected() for c in cities])
+    plt.show()
 
 example_cities()
