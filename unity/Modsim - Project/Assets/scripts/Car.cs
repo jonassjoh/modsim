@@ -3,20 +3,15 @@ using DG.Tweening;
 
 public class Car : MonoBehaviour
 {
-
-    private GameObject roundabout;
-    private Roundabout roundaboutScript;
-
     private float radius = 0.0f;
 
-    public float speed = 2.0f;
-    private float curSpeed = 0.0f;
-    public float curAngle = 0.0f;
-    public float acceleration = 0.01f;
+    public float maxSpeed = 10f;
+    public float acceleration = 0.5f;
 
     public float minDistance = 2.0f;
 
     public bool isDebugCar = false;
+
 
     private static class Path
     {
@@ -39,16 +34,37 @@ public class Car : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        roundabout = GameObject.FindWithTag("roundabout");
-        roundaboutScript = roundabout.GetComponent<Roundabout>();
-        updateRadius();
-
         this.transform.position = Path.Roundabout[0];
-        myTween = this.transform.DOPath(Path.Roundabout, 5f, PathType.CatmullRom, PathMode.Full3D, 10, Color.green);
+        myTween = this.transform.DOPath(Path.Roundabout, 1f, PathType.CatmullRom, PathMode.Full3D, 10, Color.green);
         myTween.SetSpeedBased();
         myTween.SetLoops(-1);
         myTween.SetEase(Ease.Linear);
         myTween.OnUpdate(onUpdate);
+        setSpeed(20);
+    }
+
+    private void setSpeed(float s)
+    {
+        myTween.timeScale = s;
+    }
+
+    private float getSpeed()
+    {
+        return myTween.timeScale;
+    }
+
+    private void addSpeed(float s)
+    {
+        s += getSpeed();
+        if (s < 0)
+        {
+            s = 0;
+        }
+        if (s > maxSpeed)
+        {
+            //s = maxSpeed;
+        }
+        setSpeed(s);
     }
 
     private GameObject[] getCars()
@@ -68,7 +84,8 @@ public class Car : MonoBehaviour
 
     private float percentageToLength(float percent)
     {
-        return percent * myTween.PathLength();
+        var diff = percent * myTween.PathLength();
+        return diff;
     }
 
     private float distance(Car ca)
@@ -95,7 +112,7 @@ public class Car : MonoBehaviour
                 if (ca.isInitiated())
                 {
                     var ca_p = distance(ca);
-                    if (closestDiff == -1 || ca_p < closestDiff)
+                    if (closest == null || ca_p < closestDiff)
                     {
                         closestDiff = ca_p;
                         closest = ca;
@@ -109,21 +126,28 @@ public class Car : MonoBehaviour
     private void onUpdate()
     {
         var closest = getClosest();
+        var diff = minDistance;
+        Debug.Log(myTween.PathLength());
         if (closest != null)
         {
+            diff = percentageToLength(distance(closest));
+
             if (isDebugCar)
             {
-                Debug.Log(percentageToLength(distance(closest)));
-                if (percentageToLength(distance(closest)) < 10f)
-                {
-                    myTween.Pause();
-                }
+                Debug.Log("PLEASE don't die one me");
             }
+        }
+        if (diff < minDistance)
+        {
+            setSpeed(0);
+        }
+        else
+        {
+            addSpeed(acceleration);
         }
     }
 
-    private void updateRadius()
+    public void FixedUpdate()
     {
-        radius = roundaboutScript.radius;
     }
 }
