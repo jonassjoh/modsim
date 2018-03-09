@@ -143,6 +143,29 @@ public class BezierSpline : MonoBehaviour {
 		}
 		return transform.TransformPoint(Bezier.GetPoint(points[i], points[i + 1], points[i + 2], points[i + 3], t));
 	}
+
+    public float GetPathLength()
+    {
+        return GetPathLength(50);
+    }
+
+    public float GetPathLength(int steps)
+    {
+        return GetPathLength(steps, 0f, 1f);
+    }
+
+    public float GetPathLength(int steps, float from, float to)
+    {
+        float d = 0;
+        var prev = GetPoint(from);
+        for (int i = 1; i <= steps; i++)
+        {
+            var curr = GetPoint(from + (to - from) / steps * i);
+            d += Vector3.Distance(prev, curr);
+            prev = curr;
+        }
+        return d;
+    }
 	
 	public Vector3 GetVelocity (float t) {
 		int i;

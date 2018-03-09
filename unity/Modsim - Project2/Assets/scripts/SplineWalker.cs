@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class SplineWalker : MonoBehaviour {
 
@@ -13,9 +14,61 @@ public class SplineWalker : MonoBehaviour {
 	private float progress;
 	private bool goingForward = true;
 
+    public bool isTestCar = false;
+    public SplineWalker otherCar;
+
 	private void Update () {
+        if (isTestCar)
+        {
+            Debug.Log(GetDistance(GetClosest()));
+        }
+
         FollowPath();
 	}
+
+    public float GetDistance(SplineWalker car)
+    {
+        var steps = 50;
+        var from = this.progress;
+        var to = car.progress;
+        if (to >= from)
+        {
+            return spline.GetPathLength(steps, from, to);
+        }
+        return spline.GetPathLength((int) (steps/2), from, 1f) + spline.GetPathLength((int) (steps/2), 0f, to);
+    }
+
+    public SplineWalker[] GetCars()
+    {
+        GameObject[] objs = GameObject.FindGameObjectsWithTag("car");
+        List<SplineWalker> res = new List<SplineWalker>();
+        foreach (var o in objs)
+        {
+            if (o != this)
+            {
+                var e = o.GetComponent<SplineWalker>();
+                res.Add(e);
+            }
+        }
+        return res.ToArray();
+    }
+
+    public SplineWalker GetClosest()
+    {
+        var cars = GetCars();
+        SplineWalker closest = null;
+        float closestDiff = 0;
+        foreach (var car in cars)
+        {
+            var diff = GetDistance(car);
+            if (closest == null || diff < closestDiff)
+            {
+                closest = car;
+                closestDiff = diff;
+            }
+        }
+        return closest;
+    }
 
     private float GetSpeed()
     {
